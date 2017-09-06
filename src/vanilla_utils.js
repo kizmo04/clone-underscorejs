@@ -68,8 +68,7 @@
 
   // `truth` test를 pass 못한 item들을 담은 array를 return합니다.
   _.reject = function(collection, test) {
-    //  TIP: `_.filter` function body 안의
-    // 코드를 복붙하여 조금 변환하지 말고 `_.filter` function을 invoke하여 구현하세요.
+    //  TIP: `_.filter`을 사용하여 구현하세요.
   };
 
   // 같은_값이_없는(duplicate-free) array를 return합니다.
