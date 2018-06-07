@@ -21,7 +21,7 @@
    * 구현 못하실 정도로 어렵게 느껴지실겁니다.
    *
    */
-
+  
   _.identity = function (val) {
     return val;
   };
@@ -35,8 +35,8 @@
   //  위 `_.first`와 거의 비슷합니다. 첫 `n` item이 아닌 뒤에서 부터 `n` item을 가지고 있는
   // array를 return합니다. 만약 `n`이 `undefined`이면 마지막 item을 return합니다.
   _.last = function(array, n) {
-      return n === undefined ? array[array.length-1] :
-             n > array.length ? array : array.slice(array.length-n);
+      return n === undefined ? array[array.length - 1] :
+             n > array.length ? array : array.slice(array.length - n);
   };
 
   //  `iterator(value, key, collection)`를 collection의 item마다 invoke합니다.
@@ -51,8 +51,8 @@
       }
     } else {
       // var keys = Object.keys(collection);
-      for (var obj in collection) {
-        iterator(obj, collection);
+      for (var key in collection) {
+        iterator(collection[key], key, collection);
       }
     }
   };
@@ -77,10 +77,11 @@
   // `truth` test를 pass한 item들을 담은 array를 return합니다.
   _.filter = function(collection, test) {
     var result = [];
+    var index = 0;
 
     _.each(collection, function(item) {
       if (test(item)) {
-        result.push(item);
+        result[index++] = item;
       }
     });
 
@@ -99,9 +100,11 @@
   _.uniq = function(array) {
     var result = [];
     var dup = [];
+    var index = 0;
+
     _.each(array, function(item) {
-      if (!result.includes(item)) {
-        result.push(item);
+      if (_.indexOf(result, item) < 0) {
+        result[index++] = item;
       }
     });
     return result;
@@ -111,8 +114,8 @@
   // iterator를 item별로 invoke하여 return된 value를 array에 담아 return합니다.
   _.map = function(collection, iterator) {
     var result = [];
-    _.each(collection, function(item) {
-      result.push(iterator(item));
+    _.each(collection, function(item, index) {
+      result[index] = iterator(item);
     });
     return result;
  };
@@ -223,9 +226,8 @@
   //
   _.extend = function(obj) {
     return _.reduce(arguments, function(target, source) {
-      var entries = Object.entries(source);
-      _.each(entries, function(entry) {
-        target[entry[0]] = entry[1];
+      _.each(source, function(value, key) {
+        target[key] = value;
       });
       return target;
     }, obj);
@@ -234,10 +236,9 @@
   // extend와 같지만, obj에 이미 있는 key들은 덮어쓰기(overwrite)하지 않음.
   _.defaults = function(obj) {
     return _.reduce(arguments, function(target, source) {
-      var entries = Object.entries(source);
-      _.each(entries, function(entry) {
-        if (target[entry[0]] === undefined) {
-          target[entry[0]] = entry[1];
+      _.each(source, function(value, key) {
+        if (target[key] === undefined) {
+          target[key] = value;
         }
       });
       return target;
@@ -300,12 +301,18 @@
         return typeof item !== 'object';
       });
       
-      for (var i = 0; i < arguments.length; i++) {
-        if (args[i] !== arguments[i]) {
+      // for (var i = 0; i < arguments.length; i++) {
+      //   if (args[i] !== arguments[i]) {
+      //     isEqual = false;
+      //     break;
+      //   }  
+      // }  
+
+      _.each(arguments, function(item, index) {
+        if (args[index] !== item) {
           isEqual = false;
-          break;
-        }  
-      }  
+        }
+      });
       
       if (!alreadyCalled || !isEqual && isPrimitive) {
         result = func.apply(this, arguments);
@@ -321,10 +328,11 @@
   // 3번째 부터 받은 argument들을 사용하여 invoke합니다.
   // Example: _.delay(someFunction, 500, 'a', 'b') 은 `someFunction('a', 'b')`를 500ms후에 invoke합니다.
   _.delay = function(func, wait) {
-		var collection = [];
+    var collection = [];
+    
     _.each(arguments, function(item, index) {
 			if (index > 1) {
-				collection.push(item);
+				collection[index - 2] = item;
 			}
 		});
 
