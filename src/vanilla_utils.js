@@ -35,6 +35,8 @@
   //  위 `_.first`와 거의 비슷합니다. 첫 `n` item이 아닌 뒤에서 부터 `n` item을 가지고 있는
   // array를 return합니다. 만약 `n`이 `undefined`이면 마지막 item을 return합니다.
   _.last = function(array, n) {
+      return n === undefined ? array[array.length-1] :
+             n > array.length ? array : array.slice(array.length-n);
   };
 
   //  `iterator(value, key, collection)`를 collection의 item마다 invoke합니다.
@@ -43,6 +45,16 @@
   //  Note: `_.each` function은 `iterator` function을
   // collection의 item마다 invoke만 할뿐 value를 return하지 않습니다.
   _.each = function(collection, iterator) {
+    if (Array.isArray(collection)) {
+      for (var i = 0; i < collection.length; i++) {
+        iterator(collection[i], i, collection);
+      }
+    } else {
+      // var keys = Object.keys(collection);
+      for (var obj in collection) {
+        iterator(obj, collection);
+      }
+    }
   };
 
   //  `array`에서 `target` item이 있는지 찾아 발견된 item의 위치(index)를 return합니다.
@@ -64,20 +76,45 @@
 
   // `truth` test를 pass한 item들을 담은 array를 return합니다.
   _.filter = function(collection, test) {
+    var result = [];
+
+    _.each(collection, function(item) {
+      if (test(item)) {
+        result.push(item);
+      }
+    });
+
+    return result;
   };
 
   // `truth` test를 pass 못한 item들을 담은 array를 return합니다.
   _.reject = function(collection, test) {
     //  TIP: `_.filter`을 사용하여 구현하세요.
+    return _.filter(collection, function(item) {
+			return !test(item);
+    });
   };
 
   // 같은_값이_없는(duplicate-free) array를 return합니다.
   _.uniq = function(array) {
+    var result = [];
+    var dup = [];
+    _.each(array, function(item) {
+      if (!result.includes(item)) {
+        result.push(item);
+      }
+    });
+    return result;
   };
 
 
   // iterator를 item별로 invoke하여 return된 value를 array에 담아 return합니다.
   _.map = function(collection, iterator) {
+    var result = [];
+    _.each(collection, function(item) {
+      result.push(iterator(item));
+    });
+    return result;
  };
 
 
@@ -119,6 +156,14 @@
   //   });
 
   _.reduce = function(collection, iterator, accumulator) {
+    _.each(collection, function(item, index) {
+      if (accumulator === undefined && index === 0) {
+        accumulator = item;
+      } else {
+        accumulator = iterator(accumulator, item);
+      }
+    });
+    return accumulator;
   };
 
   // `collection`이 `target` value를 가지고 있는지 `===`을 사용하여 있는지 check합니다.
@@ -137,12 +182,21 @@
   // `collection`의 element들이 전부 `truth` test를 pass하는지 측정합니다.
   _.every = function(collection, iterator) {
     // TIP: reduce()를 사용하여 풀어보세요.
+    return _.reduce(collection, function(wasPassed, item) {
+      if (!wasPassed) {
+        return false;
+      }
+      return wasPassed = iterator ? Boolean(iterator(item)) : Boolean(item);
+    }, true);
   };
 
   // `collection`의 item중 하나라도 `truth` test를 pass하느지 측정합니다.
   // `iterator`가 `undefined`이면 기본 iterator를 사용합니다.
   _.some = function(collection, iterator) {
     // TIP: every()를 잘 사용하면 간단하게 끝납니다.
+    return !_.every(collection, function(item) {
+      return iterator ? !iterator(item) : !item;
+    });
   };
 
 
@@ -168,10 +222,26 @@
   //  obj1에는 이제 key1, key2, key3들이 있습니다.
   //
   _.extend = function(obj) {
+    return _.reduce(arguments, function(target, source) {
+      var entries = Object.entries(source);
+      _.each(entries, function(entry) {
+        target[entry[0]] = entry[1];
+      });
+      return target;
+    }, obj);
   };
 
   // extend와 같지만, obj에 이미 있는 key들은 덮어쓰기(overwrite)하지 않음.
   _.defaults = function(obj) {
+    return _.reduce(arguments, function(target, source) {
+      var entries = Object.entries(source);
+      _.each(entries, function(entry) {
+        if (target[entry[0]] === undefined) {
+          target[entry[0]] = entry[1];
+        }
+      });
+      return target;
+    }, obj);
   };
 
 
@@ -205,6 +275,7 @@
     };
   };
 
+
   //  많고/비싼 계산을 하는 function의 결괏값(result)를 저장하여 기억하는(Memorize) function을
   // 만드세요. `_.memoize()` function은 primitive들만 argument로 받습니다.
   // `memoize`라는 이름은 oncePerUniqueArgumentList(argument별로_한번씩만)라고 다시 이름을 지정할수 있습니다.
@@ -214,12 +285,52 @@
   // 먼저 받은 argument를 가지고 invoke이 예전에 됬는지 확인을 합니다. 막약 예전에 한번 같은 argument들을 가지고
   // invoke이 되어 result를 return했다면 예전에 return된 result를 다시 return합니다.
   _.memoize = function(func) {
+    var alreadyCalled = false;
+    var isEqual = true;
+    var isPrimitive = false;
+    var result;
+    var args;
+  
+    return function() {
+      if (!args) {
+        args = arguments;
+      }
+
+      isPrimitive = _.every(arguments, function(item) {
+        return typeof item !== 'object';
+      });
+      
+      for (var i = 0; i < arguments.length; i++) {
+        if (args[i] !== arguments[i]) {
+          isEqual = false;
+          break;
+        }  
+      }  
+      
+      if (!alreadyCalled || !isEqual && isPrimitive) {
+        result = func.apply(this, arguments);
+        alreadyCalled = true;
+        args = arguments;
+      }
+
+      return result;
+    };
   };
 
   //  `func` argument로 받은 function을 `wait` argument로 받은 millisecond 숫자만큼 delay하여
   // 3번째 부터 받은 argument들을 사용하여 invoke합니다.
   // Example: _.delay(someFunction, 500, 'a', 'b') 은 `someFunction('a', 'b')`를 500ms후에 invoke합니다.
   _.delay = function(func, wait) {
+		var collection = [];
+    _.each(arguments, function(item, index) {
+			if (index > 1) {
+				collection.push(item);
+			}
+		});
+
+		setTimeout(function() {
+			return func.apply(this, collection);
+		}, wait, collection);
   };
 
 }());
