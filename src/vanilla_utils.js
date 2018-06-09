@@ -300,13 +300,6 @@
       isPrimitive = _.every(arguments, function(item) {
         return typeof item !== 'object';
       });
-      
-      // for (var i = 0; i < arguments.length; i++) {
-      //   if (args[i] !== arguments[i]) {
-      //     isEqual = false;
-      //     break;
-      //   }  
-      // }  
 
       _.each(arguments, function(item, index) {
         if (args[index] !== item) {
@@ -337,7 +330,7 @@
 		});
 
 		setTimeout(function() {
-			return func.apply(this, collection);
+			func.apply(this, collection);
 		}, wait, collection);
   };
 
