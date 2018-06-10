@@ -288,31 +288,36 @@
   _.memoize = function(func) {
     var alreadyCalled = false;
     var isEqual = true;
-    var isPrimitive = false;
+    var tempArray = [];
+    var argumentsString;
+    var resultsObject = {};
     var result;
-    var args;
   
     return function() {
-      if (!args) {
-        args = arguments;
-      }
-
-      isPrimitive = _.every(arguments, function(item) {
-        return typeof item !== 'object';
-      });
-
+      
+      // arguments를 array로 변환한뒤에 string으로 변환
       _.each(arguments, function(item, index) {
-        if (args[index] !== item) {
+        if (typeof item !== 'object') {
+          tempArray[index] = item;
+        } 
+      });
+      
+      argumentsString = tempArray.toString();
+        
+      _.each(resultsObject, function(valueResult, keyArguments) {
+        if (keyArguments === argumentsString) {
+          result = valueResult;
+        } else {
           isEqual = false;
         }
       });
-      
-      if (!alreadyCalled || !isEqual && isPrimitive) {
+        
+      if (!alreadyCalled || !isEqual) {
         result = func.apply(this, arguments);
         alreadyCalled = true;
-        args = arguments;
-      }
-
+        resultsObject[argumentsString] = result;
+      } 
+      
       return result;
     };
   };
