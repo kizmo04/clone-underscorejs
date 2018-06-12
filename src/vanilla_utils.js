@@ -50,7 +50,6 @@
         iterator(collection[i], i, collection);
       }
     } else {
-      // var keys = Object.keys(collection);
       for (var key in collection) {
         iterator(collection[key], key, collection);
       }
@@ -92,7 +91,7 @@
   _.reject = function(collection, test) {
     //  TIP: `_.filter`을 사용하여 구현하세요.
     return _.filter(collection, function(item) {
-			return !test(item);
+      return !test(item);
     });
   };
 
@@ -329,14 +328,14 @@
     var collection = [];
     
     _.each(arguments, function(item, index) {
-			if (index > 1) {
-				collection[index - 2] = item;
-			}
-		});
+      if (index > 1) {
+        collection[index - 2] = item;
+      }
+    });
 
-		setTimeout(function() {
-			func.apply(this, collection);
-		}, wait, collection);
+    setTimeout(function() {
+      func.apply(this, collection);
+   }, wait, collection);
   };
 
 }());
