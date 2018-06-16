@@ -51,7 +51,9 @@
       }
     } else {
       for (var key in collection) {
-        iterator(collection[key], key, collection);
+        if (collection.hasOwnProperty(key)) {
+          iterator(collection[key], key, collection);
+        }
       }
     }
   };
@@ -76,11 +78,10 @@
   // `truth` test를 pass한 item들을 담은 array를 return합니다.
   _.filter = function(collection, test) {
     var result = [];
-    var index = 0;
 
     _.each(collection, function(item) {
       if (test(item)) {
-        result[index++] = item;
+        result.push(item);
       }
     });
 
@@ -98,12 +99,10 @@
   // 같은_값이_없는(duplicate-free) array를 return합니다.
   _.uniq = function(array) {
     var result = [];
-    var dup = [];
-    var index = 0;
 
     _.each(array, function(item) {
       if (_.indexOf(result, item) < 0) {
-        result[index++] = item;
+        result.push(item);
       }
     });
     return result;
@@ -236,7 +235,7 @@
   _.defaults = function(obj) {
     return _.reduce(arguments, function(target, source) {
       _.each(source, function(value, key) {
-        if (target[key] === undefined) {
+        if (!target.hasOwnProperty(key)) {
           target[key] = value;
         }
       });
@@ -285,38 +284,23 @@
   // 먼저 받은 argument를 가지고 invoke이 예전에 됬는지 확인을 합니다. 막약 예전에 한번 같은 argument들을 가지고
   // invoke이 되어 result를 return했다면 예전에 return된 result를 다시 return합니다.
   _.memoize = function(func) {
-    var alreadyCalled = false;
-    var isEqual = true;
-    var tempArray = [];
-    var argumentsString;
-    var resultsObject = {};
-    var result;
-  
+    
+    var preResultList = [];
+    var preArgumentsList = [];
+    
     return function() {
       
-      // arguments를 array로 변환한뒤에 string으로 변환
-      _.each(arguments, function(item, index) {
-        if (typeof item !== 'object') {
-          tempArray[index] = item;
-        } 
-      });
-      
-      argumentsString = tempArray.toString();
+      var result;
+      var argumentsString = JSON.stringify(arguments);
+      var index = _.indexOf(preArgumentsList, argumentsString);
         
-      _.each(resultsObject, function(valueResult, keyArguments) {
-        if (keyArguments === argumentsString) {
-          result = valueResult;
-        } else {
-          isEqual = false;
-        }
-      });
-        
-      if (!alreadyCalled || !isEqual) {
+      if (index !== -1) {
+        result = preResultList[index];
+      } else {
         result = func.apply(this, arguments);
-        alreadyCalled = true;
-        resultsObject[argumentsString] = result;
-      } 
-      
+        preArgumentsList.push(argumentsString);
+        preResultList.push(result);
+      }
       return result;
     };
   };
@@ -325,13 +309,8 @@
   // 3번째 부터 받은 argument들을 사용하여 invoke합니다.
   // Example: _.delay(someFunction, 500, 'a', 'b') 은 `someFunction('a', 'b')`를 500ms후에 invoke합니다.
   _.delay = function(func, wait) {
-    var collection = [];
     
-    _.each(arguments, function(item, index) {
-      if (index > 1) {
-        collection[index - 2] = item;
-      }
-    });
+    var collection = Array.prototype.slice.call(arguments, 2);
 
     setTimeout(function() {
       func.apply(this, collection);
