@@ -457,7 +457,7 @@
         memoSpy(10);
         expect(spy).to.have.been.calledOnce;
       });
-      
+
       it('should not run the memoized function twice when given a reference type as an argument', function() {
         // Be careful how you are checking if a set of arguments has been passed in already
         var spy = sinon.spy(function() { return 'Dummy output'; });
@@ -509,6 +509,35 @@
 
         expect(callback).to.have.been.calledWith(1, 2);
       });
+    });
+
+    describe('partial', function() {
+      var calculate, calFromOneArg, calFromTwoArgs, calFromOneArgSecondPosition, calFromEmptyString, calFromTwistedOrderArgs;
+
+      beforeEach(function() {
+        calculate = function(a, b, c, d) { return d - c * b - a; };
+
+        calFromOneArg = _.partial(calculate, 5);
+        calFromTwoArgs = _.partial(calculate, 5, 10);
+        calFromOneArgSecondPosition = _.partial(calculate, _, 20, _, _);
+        calFromTwistedOrderArgs = _.partial(calculate, 20, _, 30, _);
+        calFromEmptyString = _.partial(calculate, _, '', 30, _);
+      });
+
+      checkForNativeMethods(function() {
+        _.memoize(function add(a, b) {
+          return a + b;
+        });
+      });
+
+      it('테스트', function() {
+        expect(calFromTwoArgs(2, 60)).to.equal(35);
+        expect(calFromOneArg(2, 60, 7)).to.equal(-118);
+        expect(calFromOneArgSecondPosition(10, 2, 40)).to.equal(-10);
+        expect(calFromTwistedOrderArgs(2, 60)).to.equal(-20);
+        expect(calFromEmptyString(2, 8)).to.equal(6);
+      });
+
     });
 
   });
