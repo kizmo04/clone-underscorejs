@@ -21,7 +21,7 @@
    * 구현 못하실 정도로 어렵게 느껴지실겁니다.
    *
    */
-  
+
   _.identity = function (val) {
     return val;
   };
@@ -121,16 +121,16 @@
 
   // objecte들이 담긴 array를 첫번째 argument으로 받고,
   // 각 object의 특정 property value들을 array에 담아 return합니다.
-  _.pluck = function(collection, key) {
-  /*
-   * TIP: `_.map`은 array안의 value를 변환한 value들을 가지고 있는 새로운 array를
-   * return 하는 정말 쓸모 있는 function입니다. 아래 `_.pluck`은 `_.map`이 어떻게
-   * 사용되는지를 보여주기 위해 완성되었습니다.
-   */
-    return _.map(collection, function(item) {
-      return item[key];
-    });
-  };
+  // _.pluck = function(collection, key) {
+  // /*
+  //  * TIP: `_.map`은 array안의 value를 변환한 value들을 가지고 있는 새로운 array를
+  //  * return 하는 정말 쓸모 있는 function입니다. 아래 `_.pluck`은 `_.map`이 어떻게
+  //  * 사용되는지를 보여주기 위해 완성되었습니다.
+  //  */
+  //   return _.map(collection, function(item) {
+  //     return item[key];
+  //   });
+  // };
 
   //  `array`나 `object`에 iterator(accumulator, item)를 item마다 한번씩
   // 반영하여 한개의 값으로 만듭니다.
@@ -284,14 +284,14 @@
   // 먼저 받은 argument를 가지고 invoke이 예전에 됬는지 확인을 합니다. 막약 예전에 한번 같은 argument들을 가지고
   // invoke이 되어 result를 return했다면 예전에 return된 result를 다시 return합니다.
   _.memoize = function(func) {
-    
+
     var memo = {};
-    
+
     return function() {
-      
+
       var result;
       var argumentsString = JSON.stringify(arguments);
-        
+
       if (memo.hasOwnProperty(argumentsString)) {
         result = memo[argumentsString];
       } else {
@@ -306,12 +306,89 @@
   // 3번째 부터 받은 argument들을 사용하여 invoke합니다.
   // Example: _.delay(someFunction, 500, 'a', 'b') 은 `someFunction('a', 'b')`를 500ms후에 invoke합니다.
   _.delay = function(func, wait) {
-    
+
     var collection = Array.prototype.slice.call(arguments, 2);
 
     setTimeout(function() {
       func.apply(this, collection);
    }, wait, collection);
+  };
+
+
+  // _.pluck(list, propertyName)
+  // A convenient version of what is perhaps the most common use-case for map: extracting a list of property values.
+
+  // var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
+  // _.pluck(stooges, 'name');
+  // => ["moe", "larry", "curly"]
+
+  _.pluck = function(list, propertyName) {
+
+    return _.map(list, function(item) {
+      var result;
+      if (item.hasOwnProperty(propertyName)) {
+        result = item[propertyName];
+      }
+      return result;
+    });
+  };
+
+  _.partial = function(func) {
+
+    var args = Array.prototype.slice.call(arguments, 1);
+    return function(x) {
+      var index = 0;
+      var secondArgs = Array.prototype.slice.call(arguments, 0);
+      if (args.indexOf(_) > -1) {
+        while (args.includes(_)) {
+          args[args.indexOf(_)] = secondArgs[index++];
+        }
+      } else {
+        args = args.concat(secondArgs);
+      }
+      return func.apply(this, args);
+    }
+  };
+
+  //   _.clone(object)
+  // Create a shallow-copied clone of the provided plain object. Any nested objects or arrays will be copied by reference, not duplicated.
+
+  // _.clone({name: 'moe'});
+  // => {name: 'moe'};
+
+  _.clone = function(object) {
+
+    var result = {};
+    _.each(object, function(value, key) {
+      result[key] = value;
+    });
+    return result;
+  };
+
+  //   _.flatten(array, [shallow])
+  // Flattens a nested array (the nesting can be to any depth). If you pass shallow, the array will only be flattened a single level.
+
+  // _.flatten([1, [2], [3, [[4]]]]);
+  // => [1, 2, 3, 4];
+
+  // _.flatten([1, [2], [3, [[4]]]], true);
+  // => [1, 2, 3, [[4]]];
+
+  _.flatten = function(arr, isShallow) {
+
+    var result = [];
+    for (var i = 0; i < arr.length; i++) {
+      if (!Array.isArray(arr[i])) {
+        result.push(arr[i])
+      } else if (isShallow) {
+        for (var j = 0; j < arr[i].length; j++) {
+          result.push(arr[i][j]);
+        }
+      } else {
+        result = result.concat(flatten(arr[i]));
+      }
+    }
+    return result;
   };
 
 }());
